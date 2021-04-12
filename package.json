@@ -1,0 +1,60 @@
+{
+	"name": "vscode-css-open-close",
+	"displayName": "css-open-close",
+	"description": "css-open-close",
+	"version": "1.0.1",
+	"publisher": "aeschli",
+	"galleryBanner": {
+		"color": "#0000FF",
+		"theme": "dark"
+	},
+	"keywords": [
+		"multi-root ready"
+	],
+	"categories": [
+		"Formatters"
+	],
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/aeschli/vscode-css-formatter/issues",
+		"email": "martinae@microsoft.com"
+	},
+	"homepage": "https://github.com/aeschli/vscode-css-formatter/blob/master/README.md",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/aeschli/vscode-css-formatter"
+	},
+	"engines": {
+		"vscode": "^0.10.1"
+	},
+	"activationEvents": [
+		"onLanguage:css",
+		"onLanguage:less"
+	],
+	"contributes":{
+		"commands": [{
+            "command": "Coder.cssOpen",
+            "title": "cssOpen"
+        }, {
+            "command": "Coder.cssClose",
+            "title": "cssClose"
+        }]
+	},
+	"main": "./out/extension",
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"postinstall": "node ./node_modules/vscode/bin/install",
+		"test": "npm run compile && node ./node_modules/vscode/bin/test"
+	},
+	"dependencies": {
+		"js-beautify": "1.7.4"
+	},
+	"devDependencies": {
+		"typescript": "^2.5.3",
+		"vscode": "^1.1.6",
+		"@types/node": "^7.0.43",
+		"@types/mocha": "^2.2.42"
+	}
+}
