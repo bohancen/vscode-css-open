@@ -130,7 +130,7 @@ export function format_close() {
 	// 当前结束光标所在行的字符串位置
 	let end_character = selection.end.character
 
-	console.log({start_line,end_line,start_character,end_character})
+	// console.log({start_line,end_line,start_character,end_character})
 	function find_txt({start_line,end_line,start_character,end_character}){
 		let start = new vscode.Position(start_line, start_character);
 		let end   = new vscode.Position(end_line, end_character);
@@ -138,28 +138,66 @@ export function format_close() {
 		var text = editor.document.getText(range);
 		return text
 	}
+	// 寻找方向
+	let find_start_direction = 'left'
 	function find_left(){
-		
+
 		let txt = find_txt({start_line,end_line,start_character,end_character})
-		// console.log(txt)
-		if(txt.indexOf('{')==0){
-			return true
-		}
-		start_character-=1
-		if(start_character<0){
-			// console.log('start_character<0',{start_line,end_line,start_character,end_character})
-			start_line-=1
-			if(start_line<0){
-				return console.log('start_line<0',{start_line,end_line,start_character,end_character})
-			}else{
-				// 获取某行的字符串长度
-				let cur_line_length = editor.document.lineAt(start_line).text.length
-				start_character = cur_line_length - 1
-			}
+		
+		// console.log({start_line,end_line,start_character,end_character})
+		// 往右找
+		if(txt.indexOf('}')==0){
+			find_start_direction = 'right'
+			// start_character+=1
 		}
 
+		if(start_line ==0 && start_character==0){
+			find_start_direction = 'right'
+			// start_character+=1
+		}
+
+		if(find_start_direction == 'left'){
+			// 往左移动
+			start_character-=1
+			// 已经到最左面
+			if(start_character<0){
+				// 往上找找一行
+				start_line-=1
+				// 行数不能为负数
+				if(start_line<0){
+					return console.log('start_line<0',{start_line,end_line,start_character,end_character})
+				}else{
+					// 获取上一行行的字符串长度
+					let cur_line_length = editor.document.lineAt(start_line).text.length
+					start_character = cur_line_length - 1
+				}
+			}
+		}else{
+			// 往右移动
+			// console.log(txt)
+			start_character+=1
+			let cur_line_length = editor.document.lineAt(start_line).text.length
+			if(start_character > cur_line_length-1){
+				start_line+=1
+				start_character = 0
+			}
+		}
+		// 找到了
+		let dex = txt.indexOf('{')
+		if(dex>0){
+			start_character = end_character + dex
+			end_character = start_character
+			start_line = end_line
+			return true
+		}
+		if(dex==0){
+			start_character = start_character +1
+			end_character = start_character
+			return true
+		}
 		return find_left()
 	}
+	// console.log({start_line,end_line,start_character,end_character})
 	function find_rigth(){
 		
 		let txt = find_txt({start_line,end_line,start_character,end_character})
@@ -186,16 +224,27 @@ export function format_close() {
 		// }
 		return find_rigth()
 	}
+
 	find_left()
+	// console.log(({start_line,end_line,start_character,end_character}))
+	// console.log(find_txt({start_line,end_line,start_character,end_character}))
 	find_rigth()
-	console.log(find_txt({start_line,end_line,start_character,end_character}))
+	// console.log(({start_line,end_line,start_character,end_character}))
+	// console.log(find_txt({start_line,end_line,start_character,end_character}))
 	let start = new vscode.Position(start_line, start_character);
 	let end   = new vscode.Position(end_line, end_character);
 	let range = new vscode.Range(start, end);
 	let txt = find_txt({start_line,end_line,start_character,end_character})
-	txt = txt.replace(/[\s\n]/g,'') + '\n'
+	// console.log(txt)
+	// return
+	txt = txt.replace(/[\n]/g,'') + '\n'
+	txt = txt.replace(/[\s]{2}/g,'')
 	editor.edit(builder=> {
 		builder.replace(range, txt);
+
+		let start = new vscode.Position(start_line, start_character);
+		let end   = new vscode.Position(start_line, start_character);
+		new vscode.Range(start, end);
 	}).then(success=> {});
 };
 
@@ -229,10 +278,17 @@ export function format_open() {
 	function find_left(){
 
 		let txt = find_txt({start_line,end_line,start_character,end_character})
-		// console.log(txt)
+		
+		// console.log({start_line,end_line,start_character,end_character})
 		// 往右找
 		if(txt.indexOf('}')==0){
 			find_start_direction = 'right'
+			// start_character+=1
+		}
+
+		if(start_line ==0 && start_character==0){
+			find_start_direction = 'right'
+			// start_character+=1
 		}
 
 		if(find_start_direction == 'left'){
@@ -253,6 +309,7 @@ export function format_open() {
 			}
 		}else{
 			// 往右移动
+			// console.log(txt)
 			start_character+=1
 			let cur_line_length = editor.document.lineAt(start_line).text.length
 			if(start_character > cur_line_length-1){
@@ -262,14 +319,20 @@ export function format_open() {
 		}
 		// 找到了
 		let dex = txt.indexOf('{')
-		if(dex>-1){
-			start_character = dex
+		if(dex>0){
+			start_character = end_character + dex
+			end_character = start_character
+			start_line = end_line
+			return true
+		}
+		if(dex==0){
+			start_character = start_character +1
 			end_character = start_character
 			return true
 		}
-		
 		return find_left()
 	}
+	// console.log({start_line,end_line,start_character,end_character})
 	function find_rigth(){
 		
 		let txt = find_txt({start_line,end_line,start_character,end_character})
@@ -298,20 +361,24 @@ export function format_open() {
 	}
 	find_left()
 	find_rigth()
-	console.log(find_txt({start_line,end_line,start_character,end_character}))
 	let start = new vscode.Position(start_line, start_character);
 	let end   = new vscode.Position(end_line, end_character);
 	let range = new vscode.Range(start, end);
 	let txt = find_txt({start_line,end_line,start_character,end_character})
-	txt = txt.replace(/[\s\n]/g,'')
+	// console.log(({start_line,end_line,start_character,end_character}))
+	// console.log(txt)
+	// txt = txt.replace(/[\s\n]/g,'')
 	txt = txt.replace(/;/g,';\n' + tabSize)
 	txt = txt.replace('{','{\n' + tabSize)
 	txt = txt.replace(tabSize + '}','}')
-	txt = txt + '\n'
+	// txt = txt + '\n'
 	// console.log(txt)
-	// console.log(range)
+	// console.log(editor)
 	editor.edit(builder=> {
 		builder.replace(range, txt);
+		let start = new vscode.Position(start_line, start_character);
+		let end   = new vscode.Position(start_line, start_character);
+		return new vscode.Range(start, end);
 	}).then(success=> {});
 };
 
