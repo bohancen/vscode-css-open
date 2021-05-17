@@ -236,15 +236,31 @@ export function format_close() {
 	let range = new vscode.Range(start, end);
 	let txt = find_txt({start_line,end_line,start_character,end_character})
 	// console.log(txt)
+	// console.log('before')
 	// return
-	txt = txt.replace(/[\n]/g,'') + '\n'
-	txt = txt.replace(/[\s]{2}/g,'')
+	// txt = txt.replace(/[\n]/g,'')
+	// txt = txt.replace(/[\r]/g,'')
+	// txt = txt.replace(/[\s]{2}/g,'')
+	// txt = txt + '\r'
+	txt = txt.replace('{','').replace('}','').split(';').reduce((pre,cur)=>{
+		let [key,val] = cur.split(':')
+		if(key==undefined){return pre}
+		if(val==undefined){return pre}
+		key = key.trim()
+		val = val.trim()
+		pre.push(key + ':' + val + ';')
+		return pre
+	},[]).join(' ')
+	txt = '{' + txt + '}' + '\r'
+	// txt = txt + '\n'
+	// console.log(txt)
+	// console.log('after txt')
 	editor.edit(builder=> {
 		builder.replace(range, txt);
-
 		let start = new vscode.Position(start_line, start_character);
 		let end   = new vscode.Position(start_line, start_character);
-		new vscode.Range(start, end);
+		return new vscode.Range(start, end);
+
 	}).then(success=> {});
 };
 
@@ -264,7 +280,7 @@ export function format_open() {
 	// 当前结束光标所在行的字符串位置
 	let end_character = selection.end.character
 
-	console.log({start_line,end_line,start_character,end_character})
+	// console.log({start_line,end_line,start_character,end_character})
 	function find_txt({start_line,end_line,start_character,end_character}){
 		let start = new vscode.Position(start_line, start_character);
 		let end   = new vscode.Position(end_line, end_character);
@@ -365,15 +381,22 @@ export function format_open() {
 	let end   = new vscode.Position(end_line, end_character);
 	let range = new vscode.Range(start, end);
 	let txt = find_txt({start_line,end_line,start_character,end_character})
-	// console.log(({start_line,end_line,start_character,end_character}))
 	// console.log(txt)
-	// txt = txt.replace(/[\s\n]/g,'')
-	txt = txt.replace(/;/g,';\n' + tabSize)
-	txt = txt.replace('{','{\n' + tabSize)
-	txt = txt.replace(tabSize + '}','}')
-	// txt = txt + '\n'
-	// console.log(txt)
-	// console.log(editor)
+	// txt = txt.replace(/;/g,';\n' + tabSize)
+	// txt = txt.replace('{','{\n' + tabSize)
+	// txt = txt.replace(tabSize + '}','}')
+
+	txt = txt.replace('{','').replace('}','').split(';').reduce((pre,cur)=>{
+		let [key,val] = cur.split(':')
+		if(key==undefined){return pre}
+		if(val==undefined){return pre}
+		key = key.trim()
+		val = val.trim()
+		pre.push(tabSize + key + ':' + val + ';')
+		return pre
+	},[]).join('\r')
+	txt = '{\r' + txt + '\r}' + '\r'
+	
 	editor.edit(builder=> {
 		builder.replace(range, txt);
 		let start = new vscode.Position(start_line, start_character);
